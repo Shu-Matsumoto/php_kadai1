@@ -1,0 +1,87 @@
+body{
+  min-height: 100vh;
+  background-color:dimgray;
+  font-size:20px;
+  color: white;
+}
+
+.main{
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+.channelListManagement {
+  width: 20%;
+  min-height: 100vh;
+  border-style: solid;
+  border-width: 1px;
+  border-color: black;
+  text-align: left;
+}
+
+.channelText {
+  width: 80%;
+  min-height: 100vh;
+  border-style: solid;
+  border-width: 1px;
+  border-color:black;
+}
+
+.addChannel{
+  margin-top: 15px;
+}
+
+.addChannel:hover{
+  background-color: white;
+  color: black;
+}
+
+.channelListUl{
+  list-style: none;
+  margin: auto;
+}
+
+.channelListItem:hover{
+  background-color: white;
+  color: black;
+}
+
+.channelContents{
+  width:100%
+}
+
+.channelInputPost {
+  width: 100%;
+  position: fixed;
+  bottom: 2%;
+}
+
+.post_text_area{
+  display: flex;
+  width: 100%;
+}
+
+.channelTitle{
+  font-size:larger;
+  margin-left: 2%;
+}
+
+.channelInputPost input{
+  margin-left: 2%;
+  height: 30px;
+  width:70%;
+}
+
+.channelInputPost button {
+  /*background-image: url("img/send.png");*/
+  height: 35px;
+}
+
+.channelContentsUl {
+  list-style: none;
+}
+
+.channelContentsItem{
+  margin: 20px 0px;
+}

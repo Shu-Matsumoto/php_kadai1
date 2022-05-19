@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="main.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="main">
+      <div class="channelListManagement">
+        <div class="addChannel" id="id_addChannel">+ チャンネルを追加する</div>
+        <div class="channelList">
+          <ul class="channelListUl" id="id_channelListUl"></ul>
+        </div>
+      </div>
+      <div class="channelText">
+        <div class="channelContents">
+          <div class="channelTitle" id="id_channelTitle">title</div>
+          <ul class="channelContentsUl" id="id_channelContentsUl"></ul>
+        </div>
+        <div class="channelInputPost">
+          <input type="text" id="id_sendTargetTextbox" />
+          <button id="id_addContentsButton">submit</button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- axiosライブラリの読み込み -->
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="module">
+    import { AppData } from "./appDataDef.js";
+    import { ContentProxy } from "./contentProxy.js";
+
+    // アプリ状態を記憶するインスタンス
+    let appData = new AppData("matsu", "");
+    appData.CurrentSelectedChannnelName = localStorage.getItem(
+      "SlackCurrentSelectedChannnelName"
+    );
+    console.log("start main.html");
+    if (appData.CurrentSelectedChannnelName != "") {
+      updateContents(appData.CurrentSelectedChannnelName);
+    }
+
+    // 「チャンネルを追加する」ボタンクリック時イベントハンドラ
+    $("#id_addChannel").on("click", () => {
+      // チャンネル名の入力
+      const channelName = inputTextWithDialog("チャンネル名を入力してください");
+      if (channelName != null) {
+        // 親要素
+        var list = document.getElementById("id_channelListUl");
+        // 追加するチャンネル要素を作成
+        var li = document.createElement("li");
+        li.innerHTML = channelName;
+        li.className = "channelListItem";
+        // valueにlistの子要素数をセットして識別する
+        li.value = list.childElementCount;
+        // 末尾に追加
+        list.appendChild(li);
+        console.log(list);
+        ContentProxy.CreateChannel(channelName);
+      }
+    });
+
+    // 追加するチャンネル名の入力
+    // guideMessage：ダイアログに表示するガイド分
+    function inputTextWithDialog(guideMessage) {
+      // 入力ダイアログを表示
+      const inputText = window.prompt(guideMessage, "");
+      console.log("input text:" + inputText);
+      return inputText;
+    }
+
+    // コンテンツアップデート
+    function updateContents(channelName) {
+      // タイトル更新
+      $("#id_channelTitle").text(channelName);
+
+      // 指定したチャンネルのコンテンツリストを取得
+      ContentProxy.GetChannelContents(channelName).then((contentsList) => {
+        // 親要素
+        var list = document.getElementById("id_channelContentsUl");
+        // リスト初期化
+        while (list.firstChild) {
+          list.removeChild(list.firstChild);
+        }
+
+        console.log(contentsList);
+        contentsList.forEach((element) => {
+          //console.log(element);
+          // 追加するチャンネル要素を作成
+          var li = document.createElement("li");
+          li.innerHTML = element;
+          li.className = "channelContentsItem";
+          // valueにlistの子要素数をセットして識別する
+          li.value = list.childElementCount;
+          // 末尾に追加
+          list.appendChild(li);
+        });
+      });
+    }
+
+    // チャンネル名をクリックしたらそのチャンネルの内容に切替
+    //$(".channelListItem").on("click", function (args) {←これだと動的追加したアイテムはイベント起きない
+    $(document).on("click", ".channelListItem", function (args) {
+      if (args.target.innerText == "") {
+        return;
+      }
+
+      // チャンネル切り替え
+      console.log(
+        appData.CurrentSelectedChannnelName + " to " + args.target.innerText
+      );
+      // 選択されているチャンネル名の切り替え
+      appData.CurrentSelectedChannnelName = args.target.innerText;
+      localStorage.setItem(
+        "SlackCurrentSelectedChannnelName",
+        appData.CurrentSelectedChannnelName
+      );
+
+      // 表示コンテンツリフレッシュ
+      updateContents(appData.CurrentSelectedChannnelName);
+    });
+
+    // upload対象ファイル選択イベントハンドラ
+    // const input_file = document.getElementById("id_add_user_button");
+    // input_file.addEventListener("change", (e) => {
+    //   if (input_file.files.length != 0) {
+    //     // ファイルの読み込み
+    //     let file_reader = new FileReader();
+    //     file_reader.readAsDataURL(e.target.files[0]);
+    //     // ファイルの読み込みが完了したら実行
+    //     file_reader.addEventListener("load", function (e2) {
+    //       ContentProxy.AddUser("matsu", e2.target.result);
+    //     });
+    //   }
+    // });
+
+    // コンテンツ送信時のイベントハンドラ
+    $("#id_addContentsButton").on("click", () => {
+      let contents = $("#id_sendTargetTextbox").val();
+      console.log(contents);
+      ContentProxy.AddContentsToChannel(
+        appData.CurrentSelectedChannnelName,
+        appData.CurrentLoginUser,
+        contents
+      ).then((result) => {
+        console.log(result);
+        // 表示コンテンツリフレッシュ
+        //updateContents(appData.CurrentSelectedChannnelName);
+      });
+    });
+
+    // チャンネルリストの更新
+    function updateChannelList() {
+      ContentProxy.GetChannelList().then((channelList) => {
+        //console.log(channelList);
+
+        // 親要素
+        var list = document.getElementById("id_channelListUl");
+
+        for (let index = 0; index < channelList.length; index++) {
+          // 追加するチャンネル要素を作成
+          var li = document.createElement("li");
+          li.innerHTML = channelList[index];
+          li.className = "channelListItem";
+          // valueにlistの子要素数をセットして識別する
+          li.value = list.childElementCount;
+          // 末尾に追加
+          list.appendChild(li);
+        }
+        //console.log(list);
+      });
+    }
+    updateChannelList();
+
+    setInterval(() => {
+      console.log("currentChannel:" + appData.CurrentSelectedChannnelName);
+    }, 1000);
+  </script>
+</html>
