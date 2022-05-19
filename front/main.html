@@ -35,14 +35,25 @@
     import { ContentProxy } from "./contentProxy.js";
 
     // アプリ状態を記憶するインスタンス
-    let appData = new AppData("matsu", "");
-    appData.CurrentSelectedChannnelName = localStorage.getItem(
-      "SlackCurrentSelectedChannnelName"
-    );
-    console.log("start main.html");
-    if (appData.CurrentSelectedChannnelName != "") {
-      updateContents(appData.CurrentSelectedChannnelName);
-    }
+    let appData = new AppData("", "");
+
+    // オンロードで描画
+    window.onload = function () {
+      // 呼び出しページからの引数(ログインユーザ名)を受け取り
+      let query = location.search;
+      let value = query.split("=");
+      let userName = decodeURIComponent(value[1]);
+      console.log("login user name: " + userName);
+
+      // アプリ状態を記憶するインスタンス
+      appData.CurrentLoginUser = userName;
+      appData.CurrentSelectedChannnelName = localStorage.getItem(
+        "SlackCurrentSelectedChannnelName"
+      );
+      if (appData.CurrentSelectedChannnelName != "") {
+        updateContents(appData.CurrentSelectedChannnelName);
+      }
+    };
 
     // 「チャンネルを追加する」ボタンクリック時イベントハンドラ
     $("#id_addChannel").on("click", () => {
@@ -87,12 +98,18 @@
           list.removeChild(list.firstChild);
         }
 
-        console.log(contentsList);
+        //console.log(contentsList);
         contentsList.forEach((element) => {
           //console.log(element);
           // 追加するチャンネル要素を作成
           var li = document.createElement("li");
-          li.innerHTML = element;
+          //console.log(element);
+          let string = "<tr><td><span style='color:gray'>";
+          string += element[1] + " / " + element[0];
+          string += "</span><br>";
+          string +=
+            "<p style='font-size:larger'>" + element[2] + "</p></td></tr>";
+          li.innerHTML = string; //element;
           li.className = "channelContentsItem";
           // valueにlistの子要素数をセットして識別する
           li.value = list.childElementCount;
@@ -176,8 +193,8 @@
     }
     updateChannelList();
 
-    setInterval(() => {
-      console.log("currentChannel:" + appData.CurrentSelectedChannnelName);
-    }, 1000);
+    // setInterval(() => {
+    //   console.log("currentChannel:" + appData.CurrentSelectedChannnelName);
+    // }, 1000);
   </script>
 </html>

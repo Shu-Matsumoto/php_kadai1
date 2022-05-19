@@ -1,8 +1,6 @@
 body{
   min-height: 100vh;
-  background-color:dimgray;
   font-size:20px;
-  color: white;
 }
 
 .main{
@@ -12,12 +10,14 @@ body{
 }
 
 .channelListManagement {
-  width: 20%;
+  width: 18%;
   min-height: 100vh;
   border-style: solid;
   border-width: 1px;
+  background-color:darkmagenta;
   border-color: black;
   text-align: left;
+  color: white;
 }
 
 .channelText {
@@ -84,4 +84,6 @@ body{
 
 .channelContentsItem{
   margin: 20px 0px;
+  border-style: solid;
+  border-width: 1px;
 }
